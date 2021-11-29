@@ -23,6 +23,8 @@ import java.io.File
 import javax.imageio.ImageIO
 
 class AccessibilityRenderExtensionTest {
+  private val snapshotHandler = TestSnapshotVerifier()
+
   @get:Rule
   val paparazzi = Paparazzi(
     deviceConfig = DeviceConfig.NEXUS_5.copy(
@@ -30,14 +32,23 @@ class AccessibilityRenderExtensionTest {
       screenWidth = DeviceConfig.NEXUS_5.screenWidth * 2,
       softButtons = false
     ),
-    snapshotHandler = TestSnapshotVerifier(),
+    snapshotHandler = snapshotHandler,
     renderExtensions = setOf(AccessibilityRenderExtension())
   )
 
   @Test
   fun test() {
     val view = buildView(paparazzi.context)
+    snapshotHandler.shouldVerifySnapshot = true
+
     paparazzi.snapshot(view)
+  }
+
+  @Test
+  fun `test without layout params set`() {
+    snapshotHandler.shouldVerifySnapshot = false
+
+    paparazzi.snapshot(View(paparazzi.context))
   }
 
   private fun buildView(context: Context) =
@@ -85,6 +96,8 @@ class AccessibilityRenderExtensionTest {
     }
 
   private class TestSnapshotVerifier : SnapshotHandler {
+    var shouldVerifySnapshot: Boolean = false
+
     override fun newFrameHandler(
       snapshot: Snapshot,
       frameCount: Int,
@@ -92,6 +105,8 @@ class AccessibilityRenderExtensionTest {
     ): SnapshotHandler.FrameHandler {
       return object : SnapshotHandler.FrameHandler {
         override fun handle(image: BufferedImage) {
+          if (!shouldVerifySnapshot) return
+
           val expected = File("src/test/resources/accessibility.png")
           ImageUtils.assertImageSimilar(
             relativePath = expected.path,

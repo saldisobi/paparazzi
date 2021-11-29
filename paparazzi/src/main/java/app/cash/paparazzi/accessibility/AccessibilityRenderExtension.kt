@@ -66,8 +66,8 @@ class AccessibilityRenderExtension : RenderExtension {
       addView(
         contentView,
         LinearLayout.LayoutParams(
-          contentView.layoutParams.width,
-          contentView.layoutParams.height,
+          contentView.layoutParams?.width ?: ViewGroup.LayoutParams.WRAP_CONTENT,
+          contentView.layoutParams?.height ?: ViewGroup.LayoutParams.WRAP_CONTENT,
           1f
         )
       )
